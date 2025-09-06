@@ -241,7 +241,7 @@ function renderSettings(root){
   form.elements.theme.value = store.settings.theme || 'auto';
   form.elements.useNotifications.checked = !!store.settings.useNotifications;
   form.elements.notifyTime.value = store.settings.notifyTime || '09:00';
-  form.addEventListener('change', async (e)=>{
+  form.addEventListener('change', async ()=>{
     const data = {
       theme: form.elements.theme.value,
       useNotifications: form.elements.useNotifications.checked,
