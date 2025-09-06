@@ -6,7 +6,7 @@ export class DB {
     if (this.db) return this.db;
     this.db = await new Promise((resolve, reject)=>{
       const req = indexedDB.open(this.name, this.version);
-      req.onupgradeneeded = (e)=>{
+      req.onupgradeneeded = ()=>{
         const db = req.result;
         if (!db.objectStoreNames.contains('plants')){
           const s = db.createObjectStore('plants', { keyPath: 'id' });
