@@ -6,6 +6,14 @@ const state = { route: '/dashboard', cal: { year: new Date().getFullYear(), mont
 const qs = (sel, el=document)=> el.querySelector(sel);
 const qsa = (sel, el=document)=> [...el.querySelectorAll(sel)];
 
+const colorScheme = window.matchMedia('(prefers-color-scheme: dark)');
+
+function applyTheme(mode){
+  document.documentElement.classList.remove('light');
+  if (mode === 'light') document.documentElement.classList.add('light');
+  if (mode === 'auto'){ if (!colorScheme.matches) document.documentElement.classList.add('light'); }
+}
+
 async function main(){
   await store.init();
   initTheme();
@@ -23,17 +31,16 @@ function updateVersion(){
 }
 
 function initTheme(){
-  const t = store.settings.theme || 'auto';
-  applyTheme(t);
-  qs('#themeToggle').addEventListener('click', async ()=>{
-    const next = document.documentElement.classList.contains('light') ? 'auto' : 'light';
-    applyTheme(next);
-    await store.saveSettings({theme: next});
+  let mode = store.settings.theme || 'auto';
+  applyTheme(mode);
+  colorScheme.addEventListener('change', ()=>{
+    if (mode === 'auto') applyTheme('auto');
   });
-  function applyTheme(mode){
-    document.documentElement.classList.remove('light');
-    if (mode==='light') document.documentElement.classList.add('light');
-  }
+  qs('#themeToggle').addEventListener('click', async ()=>{
+    mode = mode === 'auto' ? 'light' : mode === 'light' ? 'dark' : 'auto';
+    applyTheme(mode);
+    await store.saveSettings({theme: mode});
+  });
 }
 
 function bindNav(){
@@ -248,6 +255,7 @@ function renderSettings(root){
       notifyTime: form.elements.notifyTime.value
     };
     await store.saveSettings(data);
+    applyTheme(data.theme);
     if (data.useNotifications) requestNotifyPermission();
   });
   qs('[data-action="backup"]', tpl).addEventListener('click', async ()=>{

@@ -3,7 +3,7 @@ import { uid, toISODate, addDays, diffDays } from './utils.js';
 
 export class Store {
   constructor(){
-    this.db = new DB('cactolog', 1);
+    this.db = new DB('cactolog', 2);
     this.cache = { plants: [], activities: [], settings: {} };
   }
   async init(){
@@ -37,7 +37,6 @@ export class Store {
   async deletePlant(id){
     await this.db.delete('plants', id);
     this.cache.plants = this.cache.plants.filter(p=>p.id!==id);
-    // also delete related photos and activities
     const rel = this.cache.activities.filter(a=>a.plantId===id).map(a=>a.id);
     for (const aid of rel) await this.db.delete('activities', aid);
     this.cache.activities = this.cache.activities.filter(a=>a.plantId!==id);

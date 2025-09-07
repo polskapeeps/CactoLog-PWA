@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cactolog-v1';
+const CACHE_NAME = 'cactolog-v2';
 const ASSETS = [
   
   'index.html',
@@ -21,17 +21,18 @@ self.addEventListener('activate', (event)=>{
 });
 self.addEventListener('fetch', (event)=>{
   const req = event.request;
+  if (req.method !== 'GET') return;
   event.respondWith(
     caches.match(req).then(cached => cached || fetch(req).then(res=>{
-      // cache runtime GETs for same-origin
-      if (req.method==='GET' && new URL(req.url).origin === location.origin){
+      if (res.ok && new URL(req.url).origin === location.origin){
         const copy = res.clone();
         caches.open(CACHE_NAME).then(c=> c.put(req, copy));
       }
       return res;
     }).catch(()=>{
       if (req.destination === 'image') return caches.match('assets/placeholder.jpg');
-      return caches.match('index.html');
+      if (req.mode === 'navigate') return caches.match('index.html');
+      return Response.error();
     }))
   );
 });
