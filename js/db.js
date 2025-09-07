@@ -1,5 +1,5 @@
 export class DB {
-  constructor(name = 'cactolog', version = 1){
+  constructor(name = 'cactolog', version = 2){
     this.name = name; this.version = version; this.db = null;
   }
   async open(){
@@ -8,6 +8,7 @@ export class DB {
       const req = indexedDB.open(this.name, this.version);
       req.onupgradeneeded = ()=>{
         const db = req.result;
+        if (db.objectStoreNames.contains('photos')) db.deleteObjectStore('photos');
         if (!db.objectStoreNames.contains('plants')){
           const s = db.createObjectStore('plants', { keyPath: 'id' });
           s.createIndex('by_name','name',{unique:false});
@@ -17,10 +18,6 @@ export class DB {
           const s = db.createObjectStore('activities', { keyPath: 'id' });
           s.createIndex('by_plant','plantId',{unique:false});
           s.createIndex('by_date','date',{unique:false});
-        }
-        if (!db.objectStoreNames.contains('photos')){
-          const s = db.createObjectStore('photos', { keyPath: 'id' });
-          s.createIndex('by_plant','plantId',{unique:false});
         }
         if (!db.objectStoreNames.contains('settings')){
           db.createObjectStore('settings');
