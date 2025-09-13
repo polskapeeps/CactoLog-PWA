@@ -20,6 +20,7 @@ async function main(){
   registerSW();
   bindChromeInstall();
   bindNav();
+  bindNetworkStatus();
   routeTo(location.hash.replace('#','') || '/dashboard');
   updateVersion();
   if (store.settings.useNotifications) requestNotifyPermission();
@@ -369,6 +370,20 @@ function bindChromeInstall(){
     btn.hidden = true;
     deferredPrompt = null;
   });
+}
+
+function bindNetworkStatus(){
+  const dot = qs('#netStatus');
+  if (!dot) return;
+  const update = ()=>{
+    const online = navigator.onLine;
+    dot.classList.toggle('offline', !online);
+    dot.setAttribute('aria-label', online ? 'Online' : 'Offline');
+    dot.title = online ? 'Online' : 'Offline';
+  };
+  window.addEventListener('online', update);
+  window.addEventListener('offline', update);
+  update();
 }
 
 function escapeHTML(str=''){
