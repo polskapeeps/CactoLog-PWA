@@ -130,7 +130,8 @@ function renderPlants(root){
   function draw(){
     const search = qs('#plantSearch', root)?.value || '';
     const type = qs('#filterType', root)?.value || '';
-    const arr = store.listPlants({ search, type });
+    const sort = qs('#sortBy', root)?.value || 'name';
+    const arr = store.listPlants({ search, type, sort });
     listEl.innerHTML = '';
     if (!arr.length){ listEl.innerHTML = `<div class="empty">No plants yet. Add one.</div>`; return; }
     for (const p of arr){
@@ -164,7 +165,7 @@ function renderPlants(root){
   }
   qs('[data-action="add-plant"]', tpl).addEventListener('click', ()=> openPlantDialog());
   tpl.addEventListener('input', (e)=>{
-    if (e.target.id === 'plantSearch' || e.target.id === 'filterType') draw();
+    if (['plantSearch', 'filterType', 'sortBy'].includes(e.target.id)) draw();
   });
   root.appendChild(tpl);
   draw();
