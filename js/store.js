@@ -1,5 +1,5 @@
 import { DB } from './db.js';
-import { uid, toISODate, addDays, diffDays } from './utils.js';
+import { uid, toISODate, addDays, diffDays, sortBy } from './utils.js';
 
 export class Store {
   constructor(){
@@ -60,14 +60,17 @@ export class Store {
     }
     return act;
   }
-  listPlants({ search='', type='' }={}){
+  listPlants({ search='', type='', sort='name' }={}){
     const s = search.trim().toLowerCase();
-    return this.cache.plants.filter(p=>{
+    let arr = this.cache.plants.filter(p=>{
       const matchType = type ? p.type === type : true;
       if (!s) return matchType;
       const hay = [p.name, p.species, p.tags].filter(Boolean).join(' ').toLowerCase();
       return matchType && hay.includes(s);
     });
+    if (sort === 'nextWaterDate') arr = sortBy(arr, 'nextWaterDate');
+    else arr = sortBy(arr, 'name');
+    return arr;
   }
   duePlants(onDate = toISODate(new Date())){
     return this.cache.plants
