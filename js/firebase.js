@@ -1,17 +1,26 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut as firebaseSignOut, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import {
+  getAuth,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut as firebaseSignOut,
+  GoogleAuthProvider,
+  signInWithPopup,
+} from 'firebase/auth';
 import { getFirestore, enableIndexedDbPersistence } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
 function resolveFirebaseConfig() {
-  const env = (import.meta.env) || {};
-  const envConfig = {
-    apiKey: env.VITE_FIREBASE_API_KEY,
-    authDomain: env.VITE_FIREBASE_AUTH_DOMAIN,
-    projectId: env.VITE_FIREBASE_PROJECT_ID,
-    storageBucket: env.VITE_FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-    appId: env.VITE_FIREBASE_APP_ID
+  const env = import.meta.env || {};
+  const firebaseConfig = {
+    apiKey: 'AIzaSyDzFf2MIfgZjMwcNL7utxXTb0MNq1j2jJI',
+    authDomain: 'cactolog.firebaseapp.com',
+    projectId: 'cactolog',
+    storageBucket: 'cactolog.firebasestorage.app',
+    messagingSenderId: '174136096011',
+    appId: '1:174136096011:web:74ed6a0042060c73165e0e',
+    measurementId: 'G-74SBZ2N0YD',
   };
 
   const hasEnvConfig = Object.values(envConfig).every(Boolean);
@@ -37,7 +46,9 @@ function resolveFirebaseConfig() {
   }
 
   if (!moduleConfig || !moduleConfig.apiKey) {
-    throw new Error('Firebase configuration is missing. Provide .env values or js/firebase.config.js');
+    throw new Error(
+      'Firebase configuration is missing. Provide .env values or js/firebase.config.js'
+    );
   }
 
   return moduleConfig;
@@ -55,7 +66,9 @@ export const storage = getStorage(app);
 try {
   enableIndexedDbPersistence(db).catch((err) => {
     if (err.code === 'failed-precondition') {
-      console.warn('Multiple tabs open, persistence can only be enabled in one tab at a time.');
+      console.warn(
+        'Multiple tabs open, persistence can only be enabled in one tab at a time.'
+      );
     } else if (err.code === 'unimplemented') {
       console.warn('Browser does not support offline persistence');
     }
