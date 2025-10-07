@@ -1,206 +1,278 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#0f766e">
-  <title>CactoLog · Offline Plant Tracker</title>
-  <link rel="manifest" href="manifest.webmanifest">
-  <link rel="icon" href="icons/icon-192.png" sizes="192x192">
-  <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <link rel="stylesheet" href="css/styles.css">
-  <meta name="description" content="PWA to log and track cacti and other plants: watering, repotting, notes, photos, reminders. Offline-first.">
-</head>
-<body>
-  <header class="app-header">
-    <button id="menuBtn" class="icon-btn" aria-label="Open navigation" title="Menu">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18v2H3zM3 11h18v2H3zM3 16h18v2H3z"/></svg>
-    </button>
-    <h1 class="brand">CactoLog</h1>
-    <div class="header-actions">
-      <button id="themeToggle" class="icon-btn" aria-label="Toggle theme" title="Theme">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a1 1 0 0 1 1 1v2a1 1 0 1 1-2 0V4a1 1 0 0 1 1-1zm0 14a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm9-5a1 1 0 0 1-1 1h-2a1 1 0 1 1 0-2h2a1 1 0 0 1 1 1zM6 12a1 1 0 0 1-1 1H3a1 1 0 1 1 0-2h2a1 1 0 0 1 1 1zm11.657 6.657a1 1 0 0 1-1.414 1.414l-1.414-1.414a1 1 0 1 1 1.414-1.414l1.414 1.414zM7.757 7.757a1 1 0 0 1-1.414-1.414L7.757 4.93a1 1 0 1 1 1.414 1.414L7.757 7.757zm8.486-2.828 1.414-1.414a1 1 0 1 1 1.414 1.414l-1.414 1.414A1 1 0 0 1 16.243 4.93zM4.93 16.243a1 1 0 1 1 1.414 1.414L4.93 19.071a1 1 0 0 1-1.414-1.414l1.414-1.414z"/></svg>
-      </button>
-      <button id="installBtn" class="primary-btn small" hidden>Install</button>
-    </div>
-  </header>
-
-  <nav id="drawer" class="drawer" aria-label="Primary">
-    <div class="drawer-header">
-      <div class="logo"><img src="icons/icon-192.png" alt="" width="36" height="36"> <span>CactoLog</span></div>
-      <button class="icon-btn" id="closeDrawer" aria-label="Close menu">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.3 5.71 12 12l6.3 6.29-1.41 1.42L10.59 13.4 4.29 19.71 2.88 18.3 9.17 12 2.88 5.71 4.29 4.3l6.3 6.3 6.29-6.3z"/></svg>
-      </button>
-    </div>
-    <ul>
-      <li><a href="#/dashboard" data-route>Dashboard</a></li>
-      <li><a href="#/plants" data-route>Plants</a></li>
-      <li><a href="#/calendar" data-route>Calendar</a></li>
-      <li><a href="#/settings" data-route>Settings</a></li>
-    </ul>
-    <footer class="drawer-footer">
-      <small>Offline first. Your data stays on this device unless you export it.</small>
-    </footer>
-  </nav>
-
-  <main id="app" class="view-root" tabindex="-1" aria-live="polite"></main>
-
-  <template id="tpl-dashboard">
-    <section class="section">
-      <h2>Today</h2>
-      <div id="dueSummary" class="kpis"></div>
-      <div class="actions-row">
-        <button class="primary-btn" data-action="quick-water">Water all due</button>
-        <button class="btn" data-action="add-plant">Add plant</button>
-        <button class="btn" data-action="scan-qr">Scan QR tag</button>
-      </div>
-      <h3>Due now</h3>
-      <div id="dueList" class="cards"></div>
-      <h3>Recent activity</h3>
-      <div id="recentActivity" class="timeline"></div>
-    </section>
-  </template>
-
-  <template id="tpl-plants">
-    <section class="section">
-      <div class="toolbar">
-        <div class="search">
-          <input id="plantSearch" type="search" placeholder="Search by name, species, tag">
-        </div>
-        <div class="toolbar-right">
-          <select id="filterType" aria-label="Type filter">
-            <option value="">All types</option>
-            <option value="cactus">Cactus</option>
-            <option value="succulent">Succulent</option>
-            <option value="foliage">Foliage</option>
-          </select>
-          <button class="primary-btn" data-action="add-plant">Add plant</button>
-        </div>
-      </div>
-      <div id="plantList" class="cards grid"></div>
-    </section>
-  </template>
-
-  <template id="tpl-calendar">
-    <section class="section">
-      <div class="calendar-header">
-        <button class="icon-btn" data-cal="prev" aria-label="Previous month">
-          <svg viewBox="0 0 24 24"><path d="m15.41 7.41-1.41-1.41L8.59 11.41 14 16.83l1.41-1.41L11.41 12z"/></svg>
-        </button>
-        <h2 id="calTitle"></h2>
-        <button class="icon-btn" data-cal="next" aria-label="Next month">
-          <svg viewBox="0 0 24 24"><path d="M8.59 16.59 13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
-        </button>
-        <div class="calendar-actions">
-          <button class="btn" data-cal="today">Today</button>
-          <button class="btn" data-action="export-ics">Export watering to .ics</button>
-        </div>
-      </div>
-      <div id="calendarGrid" class="calendar-grid"></div>
-      <div id="calendarEvents" class="cards"></div>
-    </section>
-  </template>
-
-  <template id="tpl-settings">
-    <section class="section">
-      <h2>Settings</h2>
-      <form id="settingsForm" class="settings-form">
-        <label>Theme
-          <select name="theme">
-            <option value="auto">Auto</option>
-            <option value="light">Light</option>
-            <option value="dark">Dark</option>
-          </select>
-        </label>
-        <label>Notifications
-          <div class="row">
-            <input type="checkbox" name="useNotifications"> Enable watering reminders
-          </div>
-        </label>
-        <label>Reminder time
-          <input type="time" name="notifyTime" value="09:00">
-        </label>
-        <div class="row">
-          <button type="button" class="btn" data-action="backup">Export backup</button>
-          <label class="btn">
-            Import backup <input type="file" id="importFile" accept="application/json" hidden>
-          </label>
-        </div>
-      </form>
-      <details>
-        <summary>About</summary>
-        <p>All data is stored locally in your browser using IndexedDB. Install this app to your home screen for a better experience.</p>
-        <p>Version <span id="appVersion"></span></p>
-      </details>
-    </section>
-  </template>
-
-  <dialog id="plantDialog">
-    <form method="dialog" id="plantForm" class="plant-form">
-      <header>
-        <h3 id="plantDialogTitle">New plant</h3>
-        <button class="icon-btn" value="cancel" title="Close">
-          <svg viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-        </button>
-      </header>
-      <div class="form-grid">
-        <label>Name<input name="name" required placeholder="e.g., Golden Barrel"></label>
-        <label>Species<input name="species" placeholder="e.g., Echinocactus grusonii"></label>
-        <label>Type
-          <select name="type">
-            <option value="cactus">Cactus</option>
-            <option value="succulent">Succulent</option>
-            <option value="foliage">Foliage</option>
-            <option value="other">Other</option>
-          </select>
-        </label>
-        <label>Location<input name="location" placeholder="e.g., South window"></label>
-        <label>Water interval (days)<input name="waterIntervalDays" type="number" min="1" value="14"></label>
-        <label>Last watered<input name="lastWatered" type="date"></label>
-        <label>Repot interval (months)<input name="repotIntervalMonths" type="number" min="0" value="12"></label>
-        <label>Last repot<input name="lastRepot" type="date"></label>
-        <label>Tags<input name="tags" placeholder="comma separated"></label>
-        <label>Notes<textarea name="notes" rows="3" placeholder="Care notes"></textarea></label>
-        <label>Photo<input type="file" name="photo" accept="image/*"></label>
-      </div>
-      <menu>
-        <button class="btn" value="cancel">Cancel</button>
-        <button class="primary-btn" value="save">Save</button>
-      </menu>
-    </form>
-  </dialog>
-
-  <dialog id="activityDialog">
-    <form method="dialog" id="activityForm" class="activity-form">
-      <header>
-        <h3 id="activityDialogTitle">Log activity</h3>
-        <button class="icon-btn" value="cancel" title="Close">
-          <svg viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-        </button>
-      </header>
-      <input type="hidden" name="plantId">
-      <div class="form-grid">
-        <label>Type
-          <select name="type">
-            <option value="water">Water</option>
-            <option value="repot">Repot</option>
-            <option value="fertilize">Fertilize</option>
-            <option value="pest">Pest treatment</option>
-            <option value="note">Note</option>
-            <option value="custom">Custom</option>
-          </select>
-        </label>
-        <label>Date<input type="date" name="date"></label>
-        <label>Note<textarea name="note" rows="3"></textarea></label>
-        <label>Photo<input type="file" name="photo" accept="image/*"></label>
-      </div>
-      <menu>
-        <button class="btn" value="cancel">Cancel</button>
-        <button class="primary-btn" value="save">Save</button>
-      </menu>
-    </form>
-  </dialog>
-
-  <script type="module" src="js/app.js"></script>
-</body>
-</html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0f766e">
+  <title>CactoLog &middot; Plant Care Tracker</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png" sizes="192x192">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="css/styles.css">
+  <meta name="description" content="Track your cacti and succulents with photos, notes, and watering reminders. Syncs across devices.">
+</head>
+<body>
+  <!-- Auth Screen -->
+  <div id="authScreen" class="auth-screen" hidden>
+    <div class="auth-container">
+      <img src="icons/icon-192.png" alt="CactoLog" class="auth-logo">
+      <h1>CactoLog</h1>
+      <p class="auth-tagline">Your plant care companion</p>
+
+      <form id="authForm" class="auth-form">
+        <input type="email" name="email" placeholder="Email" required>
+        <input type="password" name="password" placeholder="Password" required>
+        <button type="submit" class="primary-btn full-width" id="authSubmitBtn">Sign In</button>
+      </form>
+
+      <button id="googleSignInBtn" class="btn full-width google-btn">
+        <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/><path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.55 0 9s.348 2.825.957 4.039l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/></svg>
+        Continue with Google
+      </button>
+
+      <div class="auth-toggle">
+        <span id="authToggleText">Don't have an account?</span>
+        <button type="button" id="authToggleBtn" class="link-btn">Sign Up</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main App -->
+  <div id="mainApp" hidden>
+    <header class="app-header">
+      <h1 class="brand">My Plants</h1>
+      <div class="header-actions">
+        <button id="sortBtn" class="icon-btn" aria-label="Sort" title="Sort">
+          <svg viewBox="0 0 24 24"><path d="M3 18h6v-2H3v2zM3 6v2h18V6H3zm0 7h12v-2H3v2z"/></svg>
+        </button>
+        <button id="searchBtn" class="icon-btn" aria-label="Search" title="Search">
+          <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Search Bar (hidden by default) -->
+    <div id="searchBar" class="search-bar" hidden>
+      <input type="search" id="searchInput" placeholder="Search plants..." aria-label="Search plants">
+      <button id="closeSearchBtn" class="icon-btn">
+        <svg viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+      </button>
+    </div>
+
+    <!-- Filter Chips -->
+    <div class="filter-chips">
+      <button class="chip active" data-filter="all">All</button>
+      <button class="chip" data-filter="cactus">Cacti</button>
+      <button class="chip" data-filter="succulent">Succulents</button>
+      <button class="chip" data-filter="other">Other</button>
+      <button class="chip" data-filter="due">Due</button>
+    </div>
+
+    <main id="app" class="view-root" tabindex="-1"></main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+      <button class="nav-btn active" data-nav="home">
+        <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+        <span>Home</span>
+      </button>
+      <button class="nav-btn" data-nav="add">
+        <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+        <span>Add</span>
+      </button>
+      <button class="nav-btn" data-nav="settings">
+        <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94L14.4 2.81c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+        <span>Settings</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- Plant Grid Template -->
+  <template id="tpl-home">
+    <div id="plantGrid" class="plant-grid"></div>
+    <div id="emptyState" class="empty-state" hidden>
+      <svg viewBox="0 0 24 24" width="64" height="64" fill="currentColor" opacity="0.3">
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm3.88-11.71L10 14.17l-1.88-1.88a.996.996 0 1 0-1.41 1.41l2.59 2.59c.39.39 1.02.39 1.41 0L17.3 9.7a.996.996 0 0 0 0-1.41c-.39-.39-1.03-.39-1.42 0z"/>
+      </svg>
+      <h3>No plants yet</h3>
+      <p>Tap the + button below to add your first plant</p>
+    </div>
+  </template>
+
+  <!-- Settings Template -->
+  <template id="tpl-settings">
+    <section class="settings-section">
+      <div class="settings-group">
+        <h3>Account</h3>
+        <div class="settings-item">
+          <div class="settings-info">
+            <strong id="userEmail">user@example.com</strong>
+            <small>Signed in</small>
+          </div>
+          <button id="signOutBtn" class="btn">Sign Out</button>
+        </div>
+      </div>
+
+      <div class="settings-group">
+        <h3>Appearance</h3>
+        <div class="settings-item">
+          <label for="themeSelect">Theme</label>
+          <select id="themeSelect" class="settings-select">
+            <option value="auto">Auto</option>
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="settings-group">
+        <h3>Reminders</h3>
+        <div class="settings-item">
+          <label for="notificationToggle">Watering reminders</label>
+          <input type="checkbox" id="notificationToggle" class="toggle">
+        </div>
+        <div class="settings-item">
+          <label for="reminderTime">Reminder time</label>
+          <input type="time" id="reminderTime" value="09:00">
+        </div>
+      </div>
+
+      <div class="settings-group">
+        <h3>Data</h3>
+        <div class="settings-item">
+          <button id="exportBtn" class="btn full-width">Export Backup</button>
+        </div>
+        <div class="settings-item">
+          <label class="btn full-width">
+            Import Backup
+            <input type="file" id="importFile" accept="application/json" hidden>
+          </label>
+        </div>
+      </div>
+
+      <div class="settings-group">
+        <h3>About</h3>
+        <p class="settings-text">CactoLog syncs your plant data across all your devices using Firebase. Your photos and notes are securely stored in the cloud.</p>
+        <p class="settings-text"><strong>Version:</strong> <span id="appVersion">2.0.0</span></p>
+      </div>
+    </section>
+  </template>
+
+  <!-- Add/Edit Plant Dialog -->
+  <dialog id="plantDialog" class="mobile-dialog">
+    <div class="dialog-header">
+      <h2 id="plantDialogTitle">Add Plant</h2>
+      <button class="icon-btn" id="closePlantDialog" aria-label="Close">
+        <svg viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+      </button>
+    </div>
+    <form id="plantForm" class="mobile-form">
+      <div class="photo-upload">
+        <input type="file" id="plantPhotoInput" accept="image/*" hidden>
+        <div id="plantPhotoPreview" class="photo-preview">
+          <svg viewBox="0 0 24 24" width="48" height="48" fill="currentColor" opacity="0.5">
+            <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+          </svg>
+          <p>Tap to add photo</p>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <label>
+          <span>Name *</span>
+          <input type="text" name="name" placeholder="e.g., Golden Barrel" required>
+        </label>
+        <label>
+          <span>Species</span>
+          <input type="text" name="species" placeholder="e.g., Echinocactus grusonii">
+        </label>
+        <label>
+          <span>Type</span>
+          <select name="type">
+            <option value="cactus">Cactus</option>
+            <option value="succulent">Succulent</option>
+            <option value="other">Other</option>
+          </select>
+        </label>
+        <label>
+          <span>Location</span>
+          <input type="text" name="location" placeholder="e.g., South window">
+        </label>
+        <label>
+          <span>Water every (days)</span>
+          <input type="number" name="waterIntervalDays" min="1" value="14">
+        </label>
+        <label>
+          <span>Last watered</span>
+          <input type="date" name="lastWatered">
+        </label>
+        <label>
+          <span>Tags</span>
+          <input type="text" name="tags" placeholder="Comma separated">
+        </label>
+        <label>
+          <span>Notes</span>
+          <textarea name="notes" rows="3" placeholder="Care notes, observations..."></textarea>
+        </label>
+      </div>
+
+      <div class="dialog-actions">
+        <button type="button" class="btn" id="cancelPlantBtn">Cancel</button>
+        <button type="submit" class="primary-btn">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Plant Details Dialog -->
+  <dialog id="plantDetailsDialog" class="mobile-dialog full-screen">
+    <div class="dialog-header">
+      <button class="icon-btn" id="closePlantDetails">
+        <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+      </button>
+      <h2 id="plantDetailsName">Plant Name</h2>
+      <button class="icon-btn" id="editPlantBtn">
+        <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+      </button>
+    </div>
+
+    <div class="plant-details-content">
+      <div id="plantPhotoCarousel" class="photo-carousel"></div>
+
+      <div class="plant-info">
+        <div class="info-row">
+          <span class="label">Species</span>
+          <span id="detailSpecies">—</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Type</span>
+          <span id="detailType">—</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Location</span>
+          <span id="detailLocation">—</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Last Watered</span>
+          <span id="detailLastWatered">—</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Next Watering</span>
+          <span id="detailNextWater">—</span>
+        </div>
+      </div>
+
+      <div class="plant-notes" id="plantNotes"></div>
+
+      <div class="plant-actions">
+        <button id="waterNowBtn" class="primary-btn full-width">
+          <svg viewBox="0 0 24 24" width="20" height="20"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+          Water Now
+        </button>
+        <button id="deletePlantBtn" class="btn full-width danger">Delete Plant</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script type="module" src="js/appNew.js"></script>
+</body>
+</html>

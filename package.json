@@ -1,14 +1,22 @@
 {
   "name": "cactolog-pwa",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "type": "module",
   "scripts": {
     "test": "node --test",
-    "lint": "eslint js test"
+    "lint": "eslint js test",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "firebase": "^10.7.1",
+    "browser-image-compression": "^2.0.2"
   },
   "devDependencies": {
     "eslint": "^9.11.1",
     "@eslint/js": "^9.11.1",
-    "globals": "^14.0.0"
+    "globals": "^14.0.0",
+    "vite": "^5.0.8"
   }
 }

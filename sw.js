@@ -1,9 +1,13 @@
-const CACHE_NAME = 'cactolog-v2';
+const CACHE_NAME = 'cactolog-v3';
 const ASSETS = [
-  
   'index.html',
+  'manifest.webmanifest',
   'css/styles.css',
+  'js/appNew.js',
   'js/app.js',
+  'js/firebase.js',
+  'js/firebaseStorage.js',
+  'js/sync.js',
   'js/store.js',
   'js/db.js',
   'js/utils.js',
