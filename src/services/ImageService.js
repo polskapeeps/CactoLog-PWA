@@ -180,7 +180,8 @@ export class ImageService {
     try {
       const devices = await navigator.mediaDevices.enumerateDevices();
       return devices.some(device => device.kind === 'videoinput');
-    } catch (e) {
+    } catch (err) {
+      console.warn('Failed to enumerate media devices:', err);
       return false;
     }
   }

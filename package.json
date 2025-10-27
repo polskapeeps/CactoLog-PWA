@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "test": "node --test",
-    "lint": "eslint js test"
+    "lint": "eslint src test"
   },
   "devDependencies": {
     "eslint": "^9.11.1",

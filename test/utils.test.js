@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { clamp, addDays, diffDays, sortBy, groupBy, uid, toISODate, monthMatrix } from '../js/utils.js';
+import { clamp, addDays, diffDays, sortBy, groupBy, uid, toISODate, monthMatrix } from '../src/utils/helpers.js';
 
 test('clamp limits numbers', () => {
   assert.equal(clamp(5, 0, 10), 5);

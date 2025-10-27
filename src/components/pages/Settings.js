@@ -1,5 +1,4 @@
 import { Component } from '../../core/Component.js';
-import { eventBus } from '../../core/EventBus.js';
 import { showSuccess, showError } from '../shared/Toast.js';
 import { showLoading, hideLoading } from '../shared/Loading.js';
 import { showConfirm } from '../shared/Modal.js';

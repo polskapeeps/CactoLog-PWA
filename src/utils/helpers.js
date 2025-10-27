@@ -10,7 +10,13 @@ export const uid = (prefix = '') => prefix + crypto.randomUUID();
  * @param {Date} date - Date object
  * @returns {string}
  */
-export const toISODate = (date) => date.toISOString().split('T')[0];
+export const toISODate = (date) => {
+  if (!date) return '';
+  if (typeof date === 'string') {
+    return date.split('T')[0];
+  }
+  return date.toISOString().split('T')[0];
+};
 
 /**
  * Get today's date as ISO string
@@ -117,7 +123,6 @@ export const groupBy = (arr, keyOrFn) => {
  */
 export const monthMatrix = (year, month) => {
   const firstDay = new Date(year, month, 1);
-  const lastDay = new Date(year, month + 1, 0);
   const startDate = new Date(firstDay);
   startDate.setDate(startDate.getDate() - firstDay.getDay());
 

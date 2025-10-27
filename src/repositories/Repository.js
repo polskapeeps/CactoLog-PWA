@@ -7,7 +7,7 @@ import { Database } from './Database.js';
 export async function initDatabase() {
   const db = new Database('cactolog', 3);
 
-  await db.open((idb, oldVersion, newVersion) => {
+  await db.open((idb) => {
     // Plants store
     if (!idb.objectStoreNames.contains('plants')) {
       const plantStore = idb.createObjectStore('plants', { keyPath: 'id' });

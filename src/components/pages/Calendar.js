@@ -2,6 +2,7 @@ import { Component } from '../../core/Component.js';
 import { router } from '../../core/Router.js';
 import { monthMatrix, toISODate, groupBy } from '../../utils/helpers.js';
 import { eventBus } from '../../core/EventBus.js';
+import { showError } from '../shared/Toast.js';
 
 /**
  * Calendar page component

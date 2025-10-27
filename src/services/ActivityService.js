@@ -173,6 +173,7 @@ export class ActivityService {
     }
 
     await this.activityRepo.delete(id);
+    store.removeActivity(id);
   }
 
   /**
