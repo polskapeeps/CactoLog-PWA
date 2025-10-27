@@ -64,7 +64,8 @@ class App {
         exportService: new ExportService(plantRepo, activityRepo, settingsRepo),
         qrService,
         settingsRepo,
-        photoRepo
+        photoRepo,
+        store
       };
 
       // Load initial data into store
@@ -171,6 +172,11 @@ class App {
       await this.services.settingsRepo.saveSettings({ ...settings, theme: nextTheme });
       store.setSettings({ ...settings, theme: nextTheme });
       this.applyTheme(nextTheme);
+    });
+
+    // Reapply theme whenever settings change elsewhere (e.g., Settings page)
+    eventBus.on('settings:updated', (updatedSettings = {}) => {
+      this.applyTheme(updatedSettings.theme || 'auto');
     });
   }
 

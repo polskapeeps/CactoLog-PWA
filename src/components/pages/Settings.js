@@ -1,4 +1,5 @@
 import { Component } from '../../core/Component.js';
+import { store as appStore } from '../../core/Store.js';
 import { showSuccess, showError } from '../shared/Toast.js';
 import { showLoading, hideLoading } from '../shared/Loading.js';
 import { showConfirm } from '../shared/Modal.js';
@@ -9,11 +10,12 @@ import { readFileAsText } from '../../utils/helpers.js';
  * @class
  */
 export class Settings extends Component {
-  constructor(container, { settingsRepo, exportService, store }) {
+  constructor(container, { settingsRepo, exportService, photoRepo, store }) {
     super(container);
     this.settingsRepo = settingsRepo;
     this.exportService = exportService;
-    this.store = store;
+    this.photoRepo = photoRepo || exportService?.photoRepo || null;
+    this.store = store || appStore;
 
     this.state = {
       settings: {
@@ -31,7 +33,10 @@ export class Settings extends Component {
 
   async loadSettings() {
     try {
-      const settings = await this.settingsRepo.getSettings();
+      const stored = await this.settingsRepo.getSettings();
+      const cleanStored = { ...(stored || {}) };
+      delete cleanStored.key;
+      const settings = { ...this.state.settings, ...cleanStored };
       this.setState({ settings });
     } catch (err) {
       showError(`Failed to load settings: ${err.message}`);
@@ -152,9 +157,11 @@ export class Settings extends Component {
   async updateSetting(key, value) {
     try {
       const settings = { ...this.state.settings, [key]: value };
-      await this.settingsRepo.saveSettings(settings);
-      this.setState({ settings });
-      this.store.setSettings(settings);
+      const persistable = { ...settings };
+      delete persistable.key;
+      await this.settingsRepo.saveSettings(persistable);
+      this.setState({ settings: persistable });
+      this.store?.setSettings(persistable);
 
       // Apply theme immediately
       if (key === 'theme') {
@@ -262,7 +269,7 @@ export class Settings extends Component {
       // Clear all repositories
       await this.exportService.plantRepo.clear();
       await this.exportService.activityRepo.clear();
-      await this.photoRepo.clear();
+      await this.photoRepo?.clear();
       hideLoading();
       showSuccess('All data cleared! Reloading...');
 
