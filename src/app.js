@@ -35,6 +35,8 @@ class App {
     this.db = null;
     this.services = {};
     this.currentPage = null;
+    this.themeMediaQuery = null;
+    this.themeChangeHandler = null;
   }
 
   /**
@@ -62,7 +64,8 @@ class App {
         exportService: new ExportService(plantRepo, activityRepo, settingsRepo),
         qrService,
         settingsRepo,
-        photoRepo
+        photoRepo,
+        store
       };
 
       // Load initial data into store
@@ -170,6 +173,11 @@ class App {
       store.setSettings({ ...settings, theme: nextTheme });
       this.applyTheme(nextTheme);
     });
+
+    // Reapply theme whenever settings change elsewhere (e.g., Settings page)
+    eventBus.on('settings:updated', (updatedSettings = {}) => {
+      this.applyTheme(updatedSettings.theme || 'auto');
+    });
   }
 
   /**
@@ -228,23 +236,27 @@ class App {
     const root = document.documentElement;
     root.classList.remove('light', 'dark');
 
+    if (theme !== 'auto' && this.themeMediaQuery && this.themeChangeHandler) {
+      this.themeMediaQuery.removeEventListener('change', this.themeChangeHandler);
+      this.themeMediaQuery = null;
+      this.themeChangeHandler = null;
+    }
+
     if (theme === 'light') {
       root.classList.add('light');
     } else if (theme === 'dark') {
       root.classList.add('dark');
     } else {
       // Auto - check system preference
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      if (!prefersDark) {
+      if (!this.themeMediaQuery) {
+        this.themeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        this.themeChangeHandler = () => this.applyTheme('auto');
+        this.themeMediaQuery.addEventListener('change', this.themeChangeHandler);
+      }
+
+      if (!this.themeMediaQuery.matches) {
         root.classList.add('light');
       }
-    }
-
-    // Listen for system theme changes
-    if (theme === 'auto') {
-      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-      const handler = () => this.applyTheme('auto');
-      mediaQuery.addEventListener('change', handler);
     }
   }
 

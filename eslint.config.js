@@ -4,11 +4,11 @@ import globals from 'globals';
 export default [
   js.configs.recommended,
   {
-    files: ['js/**/*.js'],
+    files: ['src/**/*.js', 'sw.js'],
     languageOptions: {
       sourceType: 'module',
       ecmaVersion: 2021,
-      globals: { ...globals.browser, BarcodeDetector: 'readonly' }
+      globals: { ...globals.browser, ...globals.serviceworker, BarcodeDetector: 'readonly' }
     }
   },
   {

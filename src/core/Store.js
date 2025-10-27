@@ -146,6 +146,12 @@ export class Store {
     eventBus.emit('activity:created', activity);
   }
 
+  removeActivity(id) {
+    const activities = this.state.activities.filter(a => a.id !== id);
+    this.setActivities(activities);
+    eventBus.emit('activity:deleted', id);
+  }
+
   removeActivitiesForPlant(plantId) {
     const activities = this.state.activities.filter(a => a.plantId !== plantId);
     this.setActivities(activities);

@@ -10,6 +10,7 @@ export class Router {
     this.routes = new Map();
     this.currentRoute = '/';
     this.params = {};
+    this.pendingState = null;
 
     window.addEventListener('hashchange', () => this.handleRouteChange());
     window.addEventListener('load', () => this.handleRouteChange());
@@ -30,8 +31,17 @@ export class Router {
    * @param {Object} state - Optional state to pass
    */
   navigate(path, state = {}) {
-    window.location.hash = path;
-    eventBus.emit('route:changed', { path, state });
+    const target = path.startsWith('#') ? path.slice(1) : path;
+    const current = window.location.hash.slice(1);
+
+    this.pendingState = state;
+
+    if (current === target) {
+      this.handleRouteChange();
+      return;
+    }
+
+    window.location.hash = `#${target}`;
   }
 
   /**
@@ -40,12 +50,14 @@ export class Router {
   handleRouteChange() {
     const hash = window.location.hash.slice(1) || '/';
     this.currentRoute = hash;
+    const state = this.pendingState;
+    this.pendingState = null;
 
     // Try exact match first
     if (this.routes.has(hash)) {
       this.params = {};
       this.routes.get(hash)(this.params);
-      eventBus.emit('route:changed', { path: hash, params: {} });
+      eventBus.emit('route:changed', { path: hash, params: {}, state });
       return;
     }
 
@@ -55,7 +67,7 @@ export class Router {
       if (params) {
         this.params = params;
         handler(params);
-        eventBus.emit('route:changed', { path: hash, params });
+        eventBus.emit('route:changed', { path: hash, params, state });
         return;
       }
     }

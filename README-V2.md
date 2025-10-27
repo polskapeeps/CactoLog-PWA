@@ -98,7 +98,7 @@ python -m http.server 8000
 npx http-server
 ```
 
-Then open `index-v2.html` in your browser.
+Then open `index.html` in your browser.
 
 ### Install as PWA
 
@@ -115,7 +115,7 @@ Then open `index-v2.html` in your browser.
 1. Create page component in `src/components/pages/`
 2. Import in `src/app.js`
 3. Add route in `setupRouting()` method
-4. Add nav link in `index-v2.html`
+4. Add nav link in `index.html`
 
 Example:
 ```javascript
