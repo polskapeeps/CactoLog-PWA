@@ -217,7 +217,8 @@ export class SettingsRepository extends Repository {
    * @returns {Promise<Object>}
    */
   async getSettings() {
-    return this.db.get(this.storeName, 'app') || {};
+    const settings = await this.db.get(this.storeName, 'app');
+    return settings || {};
   }
 
   /**

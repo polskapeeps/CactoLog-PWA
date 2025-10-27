@@ -79,6 +79,8 @@ export class Component {
    */
   el(tag, attrs = {}, children = []) {
     const element = document.createElement(tag);
+
+    // First pass: set all attributes except value and checked
     Object.entries(attrs).forEach(([key, value]) => {
       if (key === 'className') {
         element.className = value;
@@ -86,10 +88,12 @@ export class Component {
         Object.assign(element.dataset, value);
       } else if (key.startsWith('on')) {
         element.addEventListener(key.slice(2).toLowerCase(), value);
-      } else {
+      } else if (key !== 'value' && key !== 'checked') {
         element.setAttribute(key, value);
       }
     });
+
+    // Add children first
     if (typeof children === 'string') {
       element.textContent = children;
     } else {
@@ -101,6 +105,15 @@ export class Component {
         }
       });
     }
+
+    // Second pass: set value and checked properties after children are added
+    if ('value' in attrs) {
+      element.value = attrs.value;
+    }
+    if ('checked' in attrs) {
+      element.checked = attrs.checked;
+    }
+
     return element;
   }
 
