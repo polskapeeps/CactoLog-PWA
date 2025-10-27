@@ -39,12 +39,7 @@ export class ImageUpload extends Component {
         alt: 'Preview',
         className: 'upload-preview'
       }) : this.el('div', { className: 'upload-placeholder' }, [
-        this.el('svg', {
-          viewBox: '0 0 24 24',
-          width: '48',
-          height: '48',
-          className: 'upload-icon'
-        }).outerHTML = '<svg viewBox="0 0 24 24"><path d="M19.35 10.04A7.49 7.49 0 0012 4C9.11 4 6.6 5.64 5.35 8.04A5.994 5.994 0 000 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>',
+        this.createUploadIcon(),
         this.el('p', {}, label)
       ]),
       this.el('input', {
@@ -156,6 +151,20 @@ export class ImageUpload extends Component {
 
   isCameraAvailable() {
     return navigator.mediaDevices && navigator.mediaDevices.getUserMedia;
+  }
+
+  createUploadIcon() {
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    svg.setAttribute('width', '48');
+    svg.setAttribute('height', '48');
+    svg.setAttribute('class', 'upload-icon');
+
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', 'M19.35 10.04A7.49 7.49 0 0012 4C9.11 4 6.6 5.64 5.35 8.04A5.994 5.994 0 000 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z');
+
+    svg.appendChild(path);
+    return svg;
   }
 
   beforeUnmount() {
