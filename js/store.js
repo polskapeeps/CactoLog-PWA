@@ -106,12 +106,35 @@ export class Store {
   }
   async importBackup(json){
     const data = JSON.parse(json);
-    if (!data || !Array.isArray(data.plants)) throw new Error('Invalid backup');
+    if (!data || !Array.isArray(data.plants)) throw new Error('Invalid backup: missing plants array');
+
+    // Validate plant data structure
+    for (let i = 0; i < data.plants.length; i++){
+      const p = data.plants[i];
+      if (!p.name || typeof p.name !== 'string') throw new Error(`Invalid backup: plant ${i} missing name`);
+      if (p.waterIntervalDays && (typeof p.waterIntervalDays !== 'number' || p.waterIntervalDays < 1)){
+        throw new Error(`Invalid backup: plant ${i} has invalid waterIntervalDays`);
+      }
+    }
+
+    // Validate activities data structure if present
+    if (data.activities && !Array.isArray(data.activities)){
+      throw new Error('Invalid backup: activities must be an array');
+    }
+    if (data.activities){
+      for (let i = 0; i < data.activities.length; i++){
+        const a = data.activities[i];
+        if (!a.plantId || !a.type || !a.date) throw new Error(`Invalid backup: activity ${i} missing required fields`);
+      }
+    }
+
     // Clear and replace
     await this.db.clear('plants'); await this.db.clear('activities');
     this.cache.plants = []; this.cache.activities = [];
     for (const p of data.plants) await this.upsertPlant(p);
-    for (const a of data.activities) await this.addActivity(a);
+    if (data.activities){
+      for (const a of data.activities) await this.addActivity(a);
+    }
     if (data.settings) await this.saveSettings(data.settings);
     return true;
   }

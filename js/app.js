@@ -97,8 +97,16 @@ function renderDashboard(root){
     }
   }
   qs('[data-action="quick-water"]', tpl).addEventListener('click', async ()=>{
-    for (const p of due){ await store.addActivity({ plantId: p.id, type:'water', date: todayISO() }); }
-    routeTo('/dashboard');
+    try{
+      showLoading();
+      for (const p of due){ await store.addActivity({ plantId: p.id, type:'water', date: todayISO() }); }
+      hideLoading();
+      showToast(`Watered ${due.length} plant(s) successfully`);
+      routeTo('/dashboard');
+    }catch(err){
+      hideLoading();
+      showToast('Failed to water plants: ' + err.message, 'error');
+    }
   });
   qs('[data-action="add-plant"]', tpl).addEventListener('click', ()=> openPlantDialog());
   qs('[data-action="scan-qr"]', tpl).addEventListener('click', ()=> scanQR());
@@ -119,7 +127,18 @@ function renderDashboard(root){
   root.addEventListener('click', async (e)=>{
     const btn = e.target.closest('[data-act]'); if (!btn) return;
     const id = btn.dataset.id;
-    if (btn.dataset.act === 'water'){ await store.addActivity({ plantId: id, type:'water', date: todayISO() }); routeTo('/dashboard'); }
+    if (btn.dataset.act === 'water'){
+      try{
+        showLoading();
+        await store.addActivity({ plantId: id, type:'water', date: todayISO() });
+        hideLoading();
+        showToast('Plant watered successfully');
+        routeTo('/dashboard');
+      }catch(err){
+        hideLoading();
+        showToast('Failed to water plant: ' + err.message, 'error');
+      }
+    }
     if (btn.dataset.act === 'log'){ openActivityDialog(id); }
   });
 }
@@ -173,7 +192,7 @@ function renderPlants(root){
     if (edit){
       const id = edit.getAttribute('data-plant-edit');
       const p = store.cache.plants.find(x=>x.id===id);
-      openPlantDialog(p);
+      if (p) openPlantDialog(p);
       return;
     }
     const menu = e.target.closest('[data-plant-menu]');
@@ -183,7 +202,18 @@ function renderPlants(root){
     }
     const btn = e.target.closest('[data-act]'); if (!btn) return;
     const id = btn.dataset.id;
-    if (btn.dataset.act === 'water'){ await store.addActivity({ plantId: id, type:'water', date: todayISO() }); routeTo('/plants'); }
+    if (btn.dataset.act === 'water'){
+      try{
+        showLoading();
+        await store.addActivity({ plantId: id, type:'water', date: todayISO() });
+        hideLoading();
+        showToast('Plant watered successfully');
+        routeTo('/plants');
+      }catch(err){
+        hideLoading();
+        showToast('Failed to water plant: ' + err.message, 'error');
+      }
+    }
     if (btn.dataset.act === 'log'){ openActivityDialog(id); }
   });
 }
@@ -195,16 +225,44 @@ function showPlantMenu(id, x, y){
     <div class="row"><button class="btn" data-menu="duplicate">Duplicate</button><button class="btn" data-menu="delete">Delete</button></div>
   `;
   document.body.appendChild(menu);
-  const close = ()=>{ menu.remove(); document.removeEventListener('click', close); };
-  setTimeout(()=> document.addEventListener('click', close), 0);
+  let closeHandler;
+  const close = ()=>{
+    menu.remove();
+    if (closeHandler) document.removeEventListener('click', closeHandler);
+  };
+  closeHandler = close;
+  setTimeout(()=> document.addEventListener('click', closeHandler, { once: true }), 0);
   menu.addEventListener('click', async (e)=>{
     const action = e.target.closest('[data-menu]')?.dataset.menu;
     if (!action) return;
-    if (action==='delete'){ if (confirm('Delete this plant?')) { await store.deletePlant(id); routeTo('/plants'); } }
+    if (action==='delete'){
+      if (confirm('Delete this plant?')){
+        try{
+          showLoading();
+          await store.deletePlant(id);
+          hideLoading();
+          showToast('Plant deleted successfully');
+          routeTo('/plants');
+        }catch(err){
+          hideLoading();
+          showToast('Failed to delete plant: ' + err.message, 'error');
+        }
+      }
+    }
     if (action==='duplicate'){
-      const p = structuredClone(store.cache.plants.find(x=>x.id===id));
-      delete p.id; p.name = p.name + ' copy';
-      await store.upsertPlant(p); routeTo('/plants');
+      try{
+        showLoading();
+        const p = structuredClone(store.cache.plants.find(x=>x.id===id));
+        if (!p){ throw new Error('Plant not found'); }
+        delete p.id; p.name = p.name + ' copy';
+        await store.upsertPlant(p);
+        hideLoading();
+        showToast('Plant duplicated successfully');
+        routeTo('/plants');
+      }catch(err){
+        hideLoading();
+        showToast('Failed to duplicate plant: ' + err.message, 'error');
+      }
     }
   });
 }
@@ -249,24 +307,47 @@ function renderSettings(root){
   form.elements.useNotifications.checked = !!store.settings.useNotifications;
   form.elements.notifyTime.value = store.settings.notifyTime || '09:00';
   form.addEventListener('change', async ()=>{
-    const data = {
-      theme: form.elements.theme.value,
-      useNotifications: form.elements.useNotifications.checked,
-      notifyTime: form.elements.notifyTime.value
-    };
-    await store.saveSettings(data);
-    applyTheme(data.theme);
-    if (data.useNotifications) requestNotifyPermission();
+    try{
+      const data = {
+        theme: form.elements.theme.value,
+        useNotifications: form.elements.useNotifications.checked,
+        notifyTime: form.elements.notifyTime.value
+      };
+      await store.saveSettings(data);
+      applyTheme(data.theme);
+      if (data.useNotifications) requestNotifyPermission();
+      showToast('Settings saved');
+    }catch(err){
+      showToast('Failed to save settings: ' + err.message, 'error');
+    }
   });
   qs('[data-action="backup"]', tpl).addEventListener('click', async ()=>{
-    const json = await store.exportBackup();
-    download(`cactolog-backup-${toISODate(new Date())}.json`, json, 'application/json');
+    try{
+      showLoading();
+      const json = await store.exportBackup();
+      download(`cactolog-backup-${toISODate(new Date())}.json`, json, 'application/json');
+      hideLoading();
+      showToast('Backup exported successfully');
+    }catch(err){
+      hideLoading();
+      showToast('Failed to export backup: ' + err.message, 'error');
+    }
   });
   qs('#importFile', tpl).addEventListener('change', async (e)=>{
     const file = e.target.files[0]; if (!file) return;
-    const text = await file.text();
-    await store.importBackup(text);
-    routeTo('/dashboard');
+    try{
+      showLoading();
+      const text = await file.text();
+      await store.importBackup(text);
+      hideLoading();
+      showToast('Backup imported successfully');
+      routeTo('/dashboard');
+    }catch(err){
+      hideLoading();
+      showToast('Failed to import backup: ' + err.message, 'error');
+    }finally{
+      e.target.value = '';
+    }
   });
   root.appendChild(tpl);
 }
@@ -291,23 +372,60 @@ function openPlantDialog(plant=null){
   form.onsubmit = async (e)=>{
     e.preventDefault();
     const f = form.elements;
-    const data = {
-      id: plant?.id,
-      name: f.name.value.trim(),
-      species: f.species.value.trim(),
-      type: f.type.value,
-      location: f.location.value.trim(),
-      waterIntervalDays: Number(f.waterIntervalDays.value||14),
-      lastWatered: f.lastWatered.value || toISODate(new Date()),
-      repotIntervalMonths: Number(f.repotIntervalMonths.value||0),
-      lastRepot: f.lastRepot.value || '',
-      tags: f.tags.value.trim(),
-      notes: f.notes.value.trim()
-    };
+
+    // Validation
+    if (!f.name.value.trim()){
+      showToast('Plant name is required', 'error');
+      return;
+    }
+    const waterInterval = Number(f.waterIntervalDays.value||14);
+    if (waterInterval < 1 || waterInterval > 365){
+      showToast('Water interval must be between 1 and 365 days', 'error');
+      return;
+    }
+    const repotInterval = Number(f.repotIntervalMonths.value||0);
+    if (repotInterval < 0 || repotInterval > 120){
+      showToast('Repot interval must be between 0 and 120 months', 'error');
+      return;
+    }
+
     const file = f.photo.files[0];
-    if (file){ data.photoData = await imageToDataURL(file); }
-    await store.upsertPlant(data);
-    dlg.close('save'); routeTo('/plants');
+    if (file){
+      if (file.size > 5 * 1024 * 1024){
+        showToast('Photo file size must be under 5MB', 'error');
+        return;
+      }
+      if (!file.type.startsWith('image/')){
+        showToast('Only image files are allowed', 'error');
+        return;
+      }
+    }
+
+    try{
+      showLoading();
+      const data = {
+        id: plant?.id,
+        name: f.name.value.trim(),
+        species: f.species.value.trim(),
+        type: f.type.value,
+        location: f.location.value.trim(),
+        waterIntervalDays: waterInterval,
+        lastWatered: f.lastWatered.value || toISODate(new Date()),
+        repotIntervalMonths: repotInterval,
+        lastRepot: f.lastRepot.value || '',
+        tags: f.tags.value.trim(),
+        notes: f.notes.value.trim()
+      };
+      if (file){ data.photoData = await imageToDataURL(file); }
+      await store.upsertPlant(data);
+      hideLoading();
+      showToast(`Plant ${plant ? 'updated' : 'created'} successfully`);
+      dlg.close('save');
+      routeTo('/plants');
+    }catch(err){
+      hideLoading();
+      showToast('Failed to save plant: ' + err.message, 'error');
+    }
   };
 }
 
@@ -323,11 +441,38 @@ function openActivityDialog(plantId){
   form.onsubmit = async (e)=>{
     e.preventDefault();
     const f = form.elements;
+
+    // Validation
+    if (!f.date.value){
+      showToast('Date is required', 'error');
+      return;
+    }
+
     const file = f.photo.files[0];
-    let photoData = null;
-    if (file) photoData = await imageToDataURL(file);
-    await store.addActivity({ plantId, type: f.type.value, date: f.date.value, note: f.note.value.trim(), photoData });
-    dlg.close('save'); routeTo('/dashboard');
+    if (file){
+      if (file.size > 5 * 1024 * 1024){
+        showToast('Photo file size must be under 5MB', 'error');
+        return;
+      }
+      if (!file.type.startsWith('image/')){
+        showToast('Only image files are allowed', 'error');
+        return;
+      }
+    }
+
+    try{
+      showLoading();
+      let photoData = null;
+      if (file) photoData = await imageToDataURL(file);
+      await store.addActivity({ plantId, type: f.type.value, date: f.date.value, note: f.note.value.trim(), photoData });
+      hideLoading();
+      showToast('Activity logged successfully');
+      dlg.close('save');
+      routeTo('/dashboard');
+    }catch(err){
+      hideLoading();
+      showToast('Failed to log activity: ' + err.message, 'error');
+    }
   };
 }
 
@@ -375,13 +520,37 @@ function escapeHTML(str=''){
   return str.replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[s]));
 }
 
+function showToast(message, type='success', duration=3000){
+  const container = qs('#toastContainer');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.textContent = message;
+  container.appendChild(toast);
+  setTimeout(()=> toast.remove(), duration);
+}
+
+function showLoading(){
+  const overlay = document.createElement('div');
+  overlay.className = 'loading-overlay';
+  overlay.id = 'loadingOverlay';
+  overlay.innerHTML = '<div class="spinner"></div>';
+  document.body.appendChild(overlay);
+}
+
+function hideLoading(){
+  const overlay = qs('#loadingOverlay');
+  if (overlay) overlay.remove();
+}
+
 async function requestNotifyPermission(){
   try{
     if (!('Notification' in window)) return;
     if (Notification.permission === 'granted') return scheduleDailyCheck();
     const res = await Notification.requestPermission();
     if (res === 'granted') scheduleDailyCheck();
-  }catch(e){ console.warn(e); }
+  }catch(e){
+    // Notification permission denied or error
+  }
 }
 
 function scheduleDailyCheck(){
@@ -405,7 +574,9 @@ async function registerSW(){
   if ('serviceWorker' in navigator){
     try{
       await navigator.serviceWorker.register('sw.js');
-    }catch(e){ console.warn('SW failed', e); }
+    }catch(e){
+      // Service worker registration failed
+    }
   }
 }
 
