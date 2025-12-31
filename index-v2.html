@@ -11,59 +11,81 @@
   <link rel="stylesheet" href="styles-v2.css">
   <meta name="description" content="Modern offline-first PWA for tracking plants: watering, repotting, photos, reminders. Production-ready v2.0.">
 </head>
-<body>
+<body class="app-shell">
+  <div class="background-grid"></div>
+
   <!-- App Header -->
   <header class="app-header">
-    <button id="menuBtn" class="icon-btn" aria-label="Open navigation" title="Menu">
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M3 6h18v2H3zM3 11h18v2H3zM3 16h18v2H3z"/>
-      </svg>
-    </button>
-
-    <h1 class="brand">🌵 CactoLog</h1>
+    <div class="header-left">
+      <button id="menuBtn" class="icon-btn ghost" aria-label="Open navigation" title="Menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M3 6h18v2H3zM3 11h18v2H3zM3 16h18v2H3z"/>
+        </svg>
+      </button>
+      <div class="brand">
+        <div class="brand-mark">🌵</div>
+        <div>
+          <div class="brand-title">CactoLog</div>
+          <div class="brand-subtitle">Care companion · offline ready</div>
+        </div>
+      </div>
+    </div>
 
     <div class="header-actions">
+      <a class="ghost pill" href="#/plants/new" data-route>New plant</a>
       <button id="themeToggle" class="icon-btn" aria-label="Toggle theme" title="Theme">
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M12 3a1 1 0 0 1 1 1v2a1 1 0 1 1-2 0V4a1 1 0 0 1 1-1zm0 14a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm9-5a1 1 0 0 1-1 1h-2a1 1 0 1 1 0-2h2a1 1 0 0 1 1 1zM6 12a1 1 0 0 1-1 1H3a1 1 0 1 1 0-2h2a1 1 0 0 1 1 1z"/>
         </svg>
       </button>
-      <button id="installBtn" class="primary-btn small" hidden>Install</button>
+      <button id="installBtn" class="primary-btn pill" hidden>Install app</button>
     </div>
   </header>
 
-  <!-- Navigation Drawer -->
-  <nav id="drawer" class="drawer" aria-label="Primary">
-    <div class="drawer-header">
-      <div class="logo">
-        <img src="icons/icon-192.png" alt="" width="36" height="36">
-        <span>CactoLog v2.0</span>
+  <div class="shell-body">
+    <!-- Navigation Drawer -->
+    <nav id="drawer" class="drawer" aria-label="Primary">
+      <div class="drawer-header">
+        <div class="logo">
+          <img src="icons/icon-192.png" alt="" width="36" height="36">
+          <div>
+            <div class="logo-title">CactoLog v2</div>
+            <div class="logo-subtitle">Your plants, organized</div>
+          </div>
+        </div>
+        <button class="icon-btn ghost" id="closeDrawer" aria-label="Close menu">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M18.3 5.71 12 12l6.3 6.29-1.41 1.42L10.59 13.4 4.29 19.71 2.88 18.3 9.17 12 2.88 5.71 4.29 4.3l6.3 6.3 6.29-6.3z"/>
+          </svg>
+        </button>
       </div>
-      <button class="icon-btn" id="closeDrawer" aria-label="Close menu">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M18.3 5.71 12 12l6.3 6.29-1.41 1.42L10.59 13.4 4.29 19.71 2.88 18.3 9.17 12 2.88 5.71 4.29 4.3l6.3 6.3 6.29-6.3z"/>
-        </svg>
-      </button>
-    </div>
 
-    <ul>
-      <li><a href="#/dashboard" data-route>📊 Dashboard</a></li>
-      <li><a href="#/plants" data-route>🌿 Plants</a></li>
-      <li><a href="#/calendar" data-route>📅 Calendar</a></li>
-      <li><a href="#/settings" data-route>⚙️ Settings</a></li>
-    </ul>
+      <div class="drawer-content">
+        <div class="drawer-section">Overview</div>
+        <ul>
+          <li><a href="#/dashboard" data-route>📊 Dashboard</a></li>
+          <li><a href="#/plants" data-route>🌿 Plants</a></li>
+          <li><a href="#/calendar" data-route>📅 Calendar</a></li>
+        </ul>
 
-    <footer class="drawer-footer">
-      <small>
-        <strong>Offline-first</strong><br>
-        Your data stays on this device.<br>
-        <a href="#/settings">Export backup</a> to save your data.
-      </small>
-    </footer>
-  </nav>
+        <div class="drawer-section">Settings</div>
+        <ul>
+          <li><a href="#/settings" data-route>⚙️ Preferences</a></li>
+        </ul>
+      </div>
 
-  <!-- Main App Container -->
-  <main id="app" class="view-root" tabindex="-1" aria-live="polite"></main>
+      <footer class="drawer-footer">
+        <div class="tip">Offline-first · Your data stays here.</div>
+        <a class="ghost" href="#/settings" data-route>Export a backup →</a>
+      </footer>
+    </nav>
+
+    <!-- Main App Container -->
+    <main id="app" class="view-root" tabindex="-1" aria-live="polite"></main>
+  </div>
+
+  <!-- Floating add button -->
+  <a href="#/plants/new" data-route class="fab" aria-label="Add plant">+</a>
 
   <!-- Toast Container -->
   <div id="toastContainer" class="toast-container" aria-live="polite" aria-atomic="true"></div>
