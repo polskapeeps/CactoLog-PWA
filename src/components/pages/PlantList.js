@@ -100,9 +100,15 @@ export class PlantList extends Component {
 
   renderPlantGrid(plants) {
     if (plants.length === 0) {
-      return this.el('div', { className: 'empty' },
-        'No plants found. Add your first plant!'
-      );
+      return this.el('div', { className: 'empty' }, [
+        this.el('div', { style: 'font-size: 4rem; margin-bottom: 1rem;' }, '🌱'),
+        this.el('div', { style: 'font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem;' }, 'No plants yet'),
+        this.el('div', { style: 'margin-bottom: 1.5rem;' }, 'Start your plant collection by adding your first plant'),
+        this.el('button', {
+          className: 'primary-btn',
+          onClick: () => router.navigate('/plants/new')
+        }, '+ Add Your First Plant')
+      ]);
     }
 
     return this.el('div', { className: 'cards grid' },
@@ -114,6 +120,21 @@ export class PlantList extends Component {
     const photoURL = plant.photoIds && plant.photoIds.length > 0
       ? this.plantService.getPhotoURL(plant.photoIds[0])
       : 'assets/placeholder.jpg';
+
+    // Calculate days until next watering
+    const today = new Date();
+    const nextWater = new Date(plant.nextWaterDate);
+    const daysUntil = Math.ceil((nextWater - today) / (1000 * 60 * 60 * 24));
+    const isOverdue = daysUntil < 0;
+    const isDueToday = daysUntil === 0;
+
+    // Plant type icons
+    const typeIcons = {
+      'cactus': '🌵',
+      'succulent': '🪴',
+      'foliage': '🌿',
+      'other': '🌱'
+    };
 
     return this.el('div', { className: 'card plant-card' }, [
       // Photo
@@ -136,7 +157,7 @@ export class PlantList extends Component {
           this.el('button', {
             className: 'btn btn-sm',
             onClick: () => router.navigate(`/plants/${plant.id}/edit`)
-          }, 'Edit'),
+          }, '✏️ Edit'),
           this.el('button', {
             className: 'icon-btn',
             'aria-label': 'More options',
@@ -148,16 +169,24 @@ export class PlantList extends Component {
       // Info
       this.el('div', { className: 'plant-info' }, [
         this.el('div', { className: 'row' }, [
-          this.el('span', { className: 'tag' }, this.escapeHTML(plant.type)),
+          this.el('span', { className: 'tag' },
+            (typeIcons[plant.type] || '🌱') + ' ' + this.escapeHTML(plant.type)
+          ),
           plant.location ? this.el('span', { className: 'tag' },
-            this.escapeHTML(plant.location)
+            '📍 ' + this.escapeHTML(plant.location)
           ) : null
         ]),
         this.el('div', { className: 'plant-water-info' }, [
-          this.el('div', {}, `Next water: ${this.formatDate(plant.nextWaterDate)}`),
-          this.el('span', { className: 'badge' },
-            `Every ${plant.waterIntervalDays} days`
-          )
+          this.el('div', {}, [
+            isOverdue
+              ? `⚠️ Overdue by ${Math.abs(daysUntil)} day${Math.abs(daysUntil) !== 1 ? 's' : ''}`
+              : isDueToday
+                ? '💧 Water today'
+                : `Next water: ${this.formatDate(plant.nextWaterDate)}`
+          ]),
+          this.el('span', {
+            className: `badge ${isOverdue ? 'bad' : isDueToday ? 'warn' : 'ok'}`
+          }, `Every ${plant.waterIntervalDays} days`)
         ])
       ]),
 
@@ -166,11 +195,11 @@ export class PlantList extends Component {
         this.el('button', {
           className: 'primary-btn',
           onClick: () => this.waterPlant(plant.id)
-        }, 'Water'),
+        }, '💧 Water Now'),
         this.el('button', {
           className: 'btn',
           onClick: () => router.navigate(`/plants/${plant.id}/activity`)
-        }, 'Log Activity')
+        }, '📝 Log Activity')
       ])
     ]);
   }
